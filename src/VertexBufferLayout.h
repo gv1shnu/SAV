@@ -18,7 +18,7 @@ public:
 	VertexBufferLayout()
 		:m_Stride(0) {};
 
-	void push(unsigned int count)
+	void pushFloat(unsigned int count)
 	{
 		m_Elements.push_back({ GL_FLOAT, count, GL_FALSE });
 		m_Stride += sizeof(GL_FLOAT) * count;

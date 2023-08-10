@@ -88,7 +88,7 @@ int Shader::createShader(const char* source, unsigned int type)
 	return shaderID;
 }
 
-void Shader::use()
+void Shader::use() const
 {
 	glUseProgram(ID);
 }

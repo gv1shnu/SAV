@@ -6,11 +6,10 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 #include "VertexArray.h"
+#include "Renderer.h"
 
-std::vector<int> randomArrayGenerator()
+std::vector<int> randomArrayGenerator(int keysLength)
 {
-	int keysLength = 7;
-
 	// Create a random number generator
 	std::random_device rd;  // Obtain a random seed from hardware
 	std::mt19937 eng(rd()); // Seed the generator
@@ -96,22 +95,27 @@ int main()
 		};
 		unsigned int numIndices = 12;
 
-		// Creating and binding vertex array
+		// Creating vertex arrays
 		VertexArray va1, va2;
 
-		// Creating and binding vertex buffer object
+		// Creating and binding vertex buffers
 		VertexBuffer vb1(vertices, numVertices*sizeof(float));
 		VertexBuffer vb2(vertices + 8, numVertices*sizeof(float));
 
+		// adding buffers and its layout to the vertex array
 		VertexBufferLayout layout;
-		layout.push(coords);
+		layout.pushFloat(coords);
 		va1.addBuffer(vb1, layout);
 		va2.addBuffer(vb2, layout);
 
-		// Creating and binding element buffer object
+		// Creating and binding element buffer
 		IndexBuffer ib(indices, numIndices);
 
+		// Creating shader from source
 		Shader ourShader("shaders/vertex_shader.vert", "shaders/fragment_shader.frag");
+		
+		// creating renderer
+		Renderer renderer;
 
 		// Game Loop
 		while (!glfwWindowShouldClose(window))
@@ -119,30 +123,14 @@ int main()
 			processInput(window);
 
 			// rendering commands here
-			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			renderer.clear();
 
-			ourShader.use();
 			ourShader.SetUniform4f("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
-			
-			va1.bind();
-			ib.bind();
-
-			// Draw
-			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+			renderer.draw(va1, ib, ourShader);
 
 			ourShader.SetUniform4f("u_Color", 0.2f, 0.5f, 1.0f, 1.0f);
-			va2.bind();
-			ib.bind();
+			renderer.draw(va2, ib, ourShader);
 
-			// Draw
-			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
-
-
-			// unbind resources
-			va1.unbind();
-			va2.unbind();
-			ib.unbind();
 
 			// Swap front and back buffers
 			glfwSwapBuffers(window);

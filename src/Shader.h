@@ -22,7 +22,7 @@ class Shader
 		// Compiles shader
 		int compileShader(unsigned int& shaderID);
 		// use/activate the shader
-		void use();
+		void use() const;
 		// creating shader program
 		int createProgram(unsigned int& vShaderID, unsigned int& fShaderID);
 

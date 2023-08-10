@@ -12,8 +12,9 @@ class IndexBuffer
 		// binding the buffer to element array
 		void bind() const;
 		void unbind() const;
+		inline unsigned int getCount() const { return m_Count; }
 	private:
 		unsigned int ID;
-
+		unsigned int m_Count;
 };
 
