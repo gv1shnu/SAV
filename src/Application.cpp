@@ -1,4 +1,3 @@
-#include <iostream>
 #include <random>
 #include <vector>
 #include "Application.h"
@@ -7,6 +6,9 @@
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "Renderer.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 std::vector<int> randomArrayGenerator(int keysLength)
 {
@@ -33,80 +35,48 @@ std::vector<int> randomArrayGenerator(int keysLength)
 
 int main()
 {
-	std::cout << "Hello world!" << std::endl;
-
-	// Initiating GLFW
-	if (glfwInit() != GLFW_TRUE)
+	GLFWwindow* window = InitWindow(800, 600, "SAV");
+	if (!window)
 		return -1;
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
-	// GLFW context window creation
-	GLFWwindow* window = glfwCreateWindow(800, 600, "SAV", NULL, NULL);
-	if (window == NULL)
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-	// Loading GLAD
-	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-
-	glViewport(0, 0, 800, 600);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	std::cout << "OpenGL Version: "<<glGetString(GL_VERSION) << std::endl;
-
-	{
-		// Vertex data for two rectangles
+		// Vertex data for rectangle
 		float vertices[] = {
-			// Rectangle 1 (left corner)
-			-0.8f, -0.8f, // Vertex 0
-			-0.2f, -0.8f, // Vertex 1
-			-0.2f,  0.8f, // Vertex 2
-			-0.8f,  0.8f, // Vertex 3
-
-			// Rectangle 2 (right corner)
-			 0.2f, -0.8f, // Vertex 0
-			 0.8f, -0.8f, // Vertex 1
-			 0.8f,  0.8f, // Vertex 2
-			 0.2f,  0.8f  // Vertex 3
+			// square 1 (left side)
+			100.0f, 100.0f, // Vertex 0
+			200.0f, 100.0f, // Vertex 1
+			200.0f, 200.0f, // Vertex 2
+			100.0f, 200.0f, // Vertex 3
 		};
 		// Number of units per vertex
 		unsigned int coords = 2;
-		unsigned int numVertices = 16;
-		// Index data for two rectangles
+		unsigned int numVertices = 8;
+		// Index data for rectangle
 		unsigned int indices[] = {
-			// Rectangle 1
+			// square 1
 			0, 1, 2,
-			2, 3, 0,
-
-			// Rectangle 2
-			4, 5, 6,
-			6, 7, 4
+			2, 3, 0
 		};
-		unsigned int numIndices = 12;
+		unsigned int numIndices = 6;
+
+		// projection matrix
+		glm::mat4 proj = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
+
+		// view matrix
+		glm::mat4 ident = glm::mat4(1.0f);
+		glm::vec3 trvec = glm::vec3(0, 0, 0);
+		glm::mat4 view = glm::translate(ident, trvec);
 
 		// Creating vertex arrays
-		VertexArray va1, va2;
+		VertexArray va;
 
 		// Creating and binding vertex buffers
-		VertexBuffer vb1(vertices, numVertices*sizeof(float));
-		VertexBuffer vb2(vertices + 8, numVertices*sizeof(float));
+		VertexBuffer vb(vertices, numVertices*sizeof(float));
 
 		// adding buffers and its layout to the vertex array
 		VertexBufferLayout layout;
 		layout.pushFloat(coords);
-		va1.addBuffer(vb1, layout);
-		va2.addBuffer(vb2, layout);
+		va.addBuffer(vb, layout);
 
 		// Creating and binding element buffer
 		IndexBuffer ib(indices, numIndices);
@@ -117,6 +87,9 @@ int main()
 		// creating renderer
 		Renderer renderer;
 
+		glm::vec3 translationA(200, 200, 0);
+		glm::vec3 translationB(400, 200, 0);
+
 		// Game Loop
 		while (!glfwWindowShouldClose(window))
 		{
@@ -125,12 +98,25 @@ int main()
 			// rendering commands here
 			renderer.clear();
 
-			ourShader.SetUniform4f("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
-			renderer.draw(va1, ib, ourShader);
+			// square-1
+			{
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+				glm::mat4 mvp = proj * view * model;
+				ourShader.SetUniform4f("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
+				ourShader.SetUniformMat4f("u_MVP", mvp);
 
-			ourShader.SetUniform4f("u_Color", 0.2f, 0.5f, 1.0f, 1.0f);
-			renderer.draw(va2, ib, ourShader);
+				renderer.draw(va, ib, ourShader);
+			}
 
+			// square-2
+			{
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+				glm::mat4 mvp = proj * view * model;
+				ourShader.SetUniform4f("u_Color", 0.2f, 0.5f, 1.0f, 1.0f);
+				ourShader.SetUniformMat4f("u_MVP", mvp);
+
+				renderer.draw(va, ib, ourShader);
+			}
 
 			// Swap front and back buffers
 			glfwSwapBuffers(window);
