@@ -132,3 +132,8 @@ void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
+
+void Shader::SetUniform4f(const std::string& name, float f0, float f1, float f2, float f3)
+{
+	glUniform4f(glGetUniformLocation(ID, name.c_str()), f0, f1, f2, f3);
+}

@@ -123,13 +123,15 @@ int main()
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			ourShader.use();
-
+			ourShader.SetUniform4f("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
+			
 			va1.bind();
 			ib.bind();
 
 			// Draw
 			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
 
+			ourShader.SetUniform4f("u_Color", 0.2f, 0.5f, 1.0f, 1.0f);
 			va2.bind();
 			ib.bind();
 
