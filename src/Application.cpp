@@ -1,7 +1,36 @@
 #include <iostream>
+#include <random>
+#include <vector>
 #include "Application.h"
+#include "Shader.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
+#include "VertexArray.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+std::vector<int> randomArrayGenerator()
+{
+	int keysLength = 7;
+
+	// Create a random number generator
+	std::random_device rd;  // Obtain a random seed from hardware
+	std::mt19937 eng(rd()); // Seed the generator
+	std::uniform_int_distribution<> distr(1, 100); // Define the range of random numbers (1 to 100 in this case)
+
+	// Create the array and populate it with random numbers
+	std::vector<int> randomArray;
+	for (int i = 0; i < keysLength; ++i) {
+		randomArray.push_back(distr(eng));
+	}
+
+	// Print the generated array
+	std::cout << "Random array of length " << keysLength << ":\n";
+	for (int num : randomArray) {
+		std::cout << num << " ";
+	}
+	std::cout << std::endl;
+
+	return randomArray;
+}
 
 int main()
 {
@@ -12,6 +41,7 @@ int main()
 		return -1;
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
 	// GLFW context window creation
@@ -34,128 +64,69 @@ int main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// Vertex data
-	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
-	};
-	// Amount of units per vertex
-	unsigned short coords = 3;
-	// Index data
-	unsigned int indices[] = {
-		0, 1, 2, 0
-	};	
+	std::cout << "OpenGL Version: "<<glGetString(GL_VERSION) << std::endl;
 
-	// Creating and binding vertex array object
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	// Creating and binding vertex buffer object
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// Creating and binding element buffer object
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-		GL_STATIC_DRAW);
-
-	// set the vertex attributes pointers
-	glVertexAttribPointer(0, coords, GL_FLOAT, GL_FALSE, coords * sizeof(float),
-		(void*)0);
-	glEnableVertexAttribArray(0);
-
-	// Vertex shader code
-	const char* vertexShaderSource = "#version 460 core\n"
-		"layout (location = 0) in vec3 aPos;\n"
-		"void main()\n"
-		"{\n"
-		" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-		"}\0";
-	// Fragment shader code
-	const char* fragmentShaderSource = "#version 460 core\n"
-		"out vec4 FragColor;\n"
-		"void main()\n"
-		"{\n"
-		" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-		"}\0";
-
-	// Creating and compiling vertex shader  
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	// Checking vertex shader compilation status
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
 	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" <<
-			infoLog << std::endl;
+		// Vertex data
+		float vertices[] = {
+			-0.5f, -0.5f, // Vertex 0
+			0.5f, -0.5f, // Vertex 1
+			0.0f, 0.5f // Vertex 2
+		};
+		// Number of units per vertex
+		unsigned int coords = 2;
+		unsigned int numVertices = 6;
+		// Index data
+		unsigned int indices[] = {
+			0, 1, 2
+		};
+		unsigned int numIndices = 3;
+
+		// Creating and binding vertex array
+		VertexArray va;
+
+		// Creating and binding vertex buffer object
+		VertexBuffer vb(vertices, numVertices*sizeof(float));
+
+		VertexBufferLayout layout;
+		layout.push(coords);
+		va.addBuffer(vb, layout);
+
+		// Creating and binding element buffer object
+		IndexBuffer ib(indices, numIndices);
+
+		Shader ourShader("shaders/vertex_shader.vert", "shaders/fragment_shader.frag");
+
+		// Game Loop
+		while (!glfwWindowShouldClose(window))
+		{
+			processInput(window);
+
+			// rendering commands here
+			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			ourShader.use();
+			va.bind();
+			ib.bind();
+
+			// Draw
+			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+
+			// unbind resources
+			va.unbind();
+			ib.unbind();
+
+			// Swap front and back buffers
+			glfwSwapBuffers(window);
+
+			// Poll for and process events
+			glfwPollEvents();
+		}
+
+		// Terminate the window
+		glfwTerminate();
 	}
-
-	// Creating and compiling fragment shader
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	// Checking fragment shader compilation status
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" <<
-			infoLog << std::endl;
-	}
-
-	// Creating and linking shader program
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	// Checking shader program linking status
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" <<
-			infoLog << std::endl;
-	}
-
-	// Deleting unlinked shader code
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);	
-
-	// Game Loop
-	while (!glfwWindowShouldClose(window))
-	{
-		processInput(window);
-
-		// rendering commands here
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, sizeof(vertices) / sizeof(vertices[0]), GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-
-	// Terminate the window
-	glfwTerminate();
 	return 0;
 }
 
