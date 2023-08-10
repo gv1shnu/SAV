@@ -5,7 +5,8 @@
 
 class VertexBuffer
 {
-	public:
+public:
+		VertexBuffer();
 		// the constructor creates a buffer
 		VertexBuffer(float vertices[], size_t size);
 		~VertexBuffer();
@@ -13,7 +14,7 @@ class VertexBuffer
 		void bind() const;
 
 		void unbind() const;
-
+		void setData(float vertices[], size_t size);
 	private:
 		// the program ID
 		unsigned int ID;

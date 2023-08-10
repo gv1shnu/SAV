@@ -67,30 +67,46 @@ int main()
 	std::cout << "OpenGL Version: "<<glGetString(GL_VERSION) << std::endl;
 
 	{
-		// Vertex data
+		// Vertex data for two rectangles
 		float vertices[] = {
-			-0.5f, -0.5f, // Vertex 0
-			0.5f, -0.5f, // Vertex 1
-			0.0f, 0.5f // Vertex 2
+			// Rectangle 1 (left corner)
+			-0.8f, -0.8f, // Vertex 0
+			-0.2f, -0.8f, // Vertex 1
+			-0.2f,  0.8f, // Vertex 2
+			-0.8f,  0.8f, // Vertex 3
+
+			// Rectangle 2 (right corner)
+			 0.2f, -0.8f, // Vertex 0
+			 0.8f, -0.8f, // Vertex 1
+			 0.8f,  0.8f, // Vertex 2
+			 0.2f,  0.8f  // Vertex 3
 		};
 		// Number of units per vertex
 		unsigned int coords = 2;
-		unsigned int numVertices = 6;
-		// Index data
+		unsigned int numVertices = 16;
+		// Index data for two rectangles
 		unsigned int indices[] = {
-			0, 1, 2
+			// Rectangle 1
+			0, 1, 2,
+			2, 3, 0,
+
+			// Rectangle 2
+			4, 5, 6,
+			6, 7, 4
 		};
-		unsigned int numIndices = 3;
+		unsigned int numIndices = 12;
 
 		// Creating and binding vertex array
-		VertexArray va;
+		VertexArray va1, va2;
 
 		// Creating and binding vertex buffer object
-		VertexBuffer vb(vertices, numVertices*sizeof(float));
+		VertexBuffer vb1(vertices, numVertices*sizeof(float));
+		VertexBuffer vb2(vertices + 8, numVertices*sizeof(float));
 
 		VertexBufferLayout layout;
 		layout.push(coords);
-		va.addBuffer(vb, layout);
+		va1.addBuffer(vb1, layout);
+		va2.addBuffer(vb2, layout);
 
 		// Creating and binding element buffer object
 		IndexBuffer ib(indices, numIndices);
@@ -107,14 +123,23 @@ int main()
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			ourShader.use();
-			va.bind();
+
+			va1.bind();
 			ib.bind();
 
 			// Draw
 			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
 
+			va2.bind();
+			ib.bind();
+
+			// Draw
+			glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+
+
 			// unbind resources
-			va.unbind();
+			va1.unbind();
+			va2.unbind();
 			ib.unbind();
 
 			// Swap front and back buffers
