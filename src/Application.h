@@ -44,6 +44,7 @@ GLFWwindow* InitWindow(int width, int height, const char* windowTitle)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << std::endl;
 
     return window;
 }

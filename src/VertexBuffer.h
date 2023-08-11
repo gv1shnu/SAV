@@ -13,6 +13,7 @@ public:
 		void bind() const;
 
 		void unbind() const;
+		void setBufferSubData(float vertices[], unsigned int count);
 	private:
 		// the program ID
 		unsigned int ID;
