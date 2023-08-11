@@ -33,9 +33,23 @@ std::vector<int> randomArrayGenerator(int keysLength)
 	return randomArray;
 }
 
+glm::vec4 generateRandomVec4(float minVal, float maxVal) {
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dis(minVal, maxVal);
+
+	float x = dis(gen);
+	float y = dis(gen);
+	float z = dis(gen);
+	float w = dis(gen);
+
+	return glm::vec4(x, y, z, w);
+}
+
 int main()
 {
-	GLFWwindow* window = InitWindow(800, 600, "SAV");
+	int windowWidth = 800, windowHeight = 600;
+	GLFWwindow* window = InitWindow(windowWidth, windowHeight, "SAV");
 	if (!window)
 		return -1;
 	
@@ -44,9 +58,9 @@ int main()
 		float vertices[] = {
 			// square 1 (left side)
 			100.0f, 100.0f, // Vertex 0
-			200.0f, 100.0f, // Vertex 1
-			200.0f, 200.0f, // Vertex 2
-			100.0f, 200.0f, // Vertex 3
+			150.0f, 100.0f, // Vertex 1
+			150.0f, 150.0f, // Vertex 2
+			100.0f, 150.0f, // Vertex 3
 		};
 		// Number of units per vertex
 		unsigned int coords = 2;
@@ -60,7 +74,7 @@ int main()
 		unsigned int numIndices = 6;
 
 		// projection matrix
-		glm::mat4 proj = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
+		glm::mat4 proj = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
 
 		// view matrix
 		glm::mat4 ident = glm::mat4(1.0f);
@@ -71,7 +85,7 @@ int main()
 		VertexArray va;
 
 		// Creating and binding vertex buffers
-		VertexBuffer vb(vertices, numVertices*sizeof(float));
+		VertexBuffer vb(vertices, numVertices);
 
 		// adding buffers and its layout to the vertex array
 		VertexBufferLayout layout;
@@ -87,9 +101,18 @@ int main()
 		// creating renderer
 		Renderer renderer;
 
-		glm::vec3 translationA(200, 200, 0);
-		glm::vec3 translationB(400, 200, 0);
+		unsigned int numShapes = 3;
 
+		std::vector<glm::vec3> translations(numShapes);
+		std::vector<glm::vec4> colorUniforms(numShapes);
+
+		for (unsigned int i = 0; i < numShapes; i++) {
+			translations[i] = glm::vec3(trvec.x + 150, trvec.y + 100, 0);
+			trvec = translations[i];
+
+			colorUniforms[i] = generateRandomVec4(0.0f, 1.0f);
+		}
+	
 		// Game Loop
 		while (!glfwWindowShouldClose(window))
 		{
@@ -98,21 +121,11 @@ int main()
 			// rendering commands here
 			renderer.clear();
 
-			// square-1
+			for (unsigned int i = 0; i < numShapes; i++)
 			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), translations[i]);
 				glm::mat4 mvp = proj * view * model;
-				ourShader.SetUniform4f("u_Color", 1.0f, 0.5f, 0.2f, 1.0f);
-				ourShader.SetUniformMat4f("u_MVP", mvp);
-
-				renderer.draw(va, ib, ourShader);
-			}
-
-			// square-2
-			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-				glm::mat4 mvp = proj * view * model;
-				ourShader.SetUniform4f("u_Color", 0.2f, 0.5f, 1.0f, 1.0f);
+				ourShader.SetUniform4f("u_Color", colorUniforms[i].x, colorUniforms[i].y, colorUniforms[i].z, colorUniforms[i].w);
 				ourShader.SetUniformMat4f("u_MVP", mvp);
 
 				renderer.draw(va, ib, ourShader);

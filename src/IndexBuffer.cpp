@@ -1,6 +1,6 @@
 #include "IndexBuffer.h"
 
-IndexBuffer::IndexBuffer(unsigned int indices[], size_t count)
+IndexBuffer::IndexBuffer(unsigned int indices[], unsigned int count)
 	: m_Count(count)
 {
 	glGenBuffers(1, &ID);

@@ -7,7 +7,7 @@ class IndexBuffer
 {
 	public:
 		// the constructor creates a buffer
-		IndexBuffer(unsigned int indices[], size_t count);
+		IndexBuffer(unsigned int indices[], unsigned int count);
 		~IndexBuffer();
 		// binding the buffer to element array
 		void bind() const;
