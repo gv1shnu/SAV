@@ -28,7 +28,7 @@ Follow these steps to set up and run the SAV application:
 ## Screenshot
 
 <p align="center">
-    <img width="399" alt="Screenshot 2023-08-12 120227" src="https://github.com/gv1shnu/SAV/assets/121789146/c6871f62-30d0-4205-bf87-d743b5484824">
+    <img width="399" alt="sav" src="https://github.com/gv1shnu/SAV/assets/121789146/13403b34-ccf0-4981-b4b8-4465309910da">
 </p>
 
 ## Contributing
